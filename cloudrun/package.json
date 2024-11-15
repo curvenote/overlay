@@ -1,0 +1,16 @@
+{
+  "name": "@curvenote/jats-convert-service",
+  "description": "Bundled JATS convert service",
+  "version": "0.0.1",
+  "private": true,
+  "license": "",
+  "author": "",
+  "engines": {
+    "node": "^18.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "gcp-build": ""
+  },
+  "dependencies": {}
+}

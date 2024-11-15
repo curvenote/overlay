@@ -4,3 +4,5 @@ node_modules
 .cache
 .yalc
 yalc.lock
+dist
+cloudrun/index.js
