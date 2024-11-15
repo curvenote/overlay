@@ -21,7 +21,11 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (rest.length === 0 && first === 'myst.xref') {
     const xref = await getMystXrefJson(id);
     if (!xref) return new Response('myst.xref.json not found', { status: 404 });
-    return json(xref);
+    return json(xref, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
   // Handle /myst.search.json as slug
   else if (rest.length === 0 && first === 'myst.search') {
@@ -29,9 +33,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     if (!search) {
       return json({ message: 'myst.search.json not found', status: 404 }, { status: 404 });
     }
-    return json(search);
+    return json(search, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
   const data = await getPage(request, id, { slug: rest.join('.') || undefined });
   if (!data) return api404('No page found at this URL.');
-  return json(data);
+  return json(data, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  });
 };
