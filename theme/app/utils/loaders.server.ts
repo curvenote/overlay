@@ -3,7 +3,7 @@ import * as cdn from '@curvenote/cdn';
 import { type Host } from '@curvenote/common';
 import { getDomainFromRequest } from '@myst-theme/site';
 
-const CDN = 'https://storage.googleapis.com/pmc-jats-curvenote-dev-1/2024.11.01/';
+const CDN = 'https://storage.googleapis.com/pmc-jats-curvenote-dev-1/2024.11.15/';
 
 function getHostname(id: string): Host {
   return { cdn: CDN, key: id };
