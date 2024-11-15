@@ -1,0 +1,8 @@
+/app/styles/app.css
+/public/build
+/api/*
+
+# Thebe assets
+/public/*thebe*
+/public/service-worker-*.js
+/public/service-worker.js
