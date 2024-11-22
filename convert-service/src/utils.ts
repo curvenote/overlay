@@ -7,7 +7,7 @@ import { Bucket } from '@google-cloud/storage';
 
 export function respondBadRequest(res: Response, msg: string) {
   console.error(`error: ${msg}`);
-  return res.status(400).send(`Bad Request: ${msg}`);
+  return res.status(204).send(`Bad Request: ${msg}`);
 }
 
 export function removeFolder(folder?: string) {

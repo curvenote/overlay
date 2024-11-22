@@ -9,6 +9,7 @@ import { Storage } from '@google-cloud/storage';
 import { jatsFetch } from 'jats-fetch';
 import { jatsConvert } from 'jats-convert';
 import { build, init, Session } from 'myst-cli';
+import { basicLogger, LogLevel } from 'myst-cli-utils';
 import { ProjectConfig, SiteConfig } from 'myst-config';
 import { Download } from 'myst-frontmatter';
 import {
@@ -60,6 +61,7 @@ export function createService() {
     const prefix = `${FOLDER}/${id}`;
     const [files] = await bucket.getFiles({ prefix });
     if (files.length > 0) {
+      console.info(`ID already processed: ${id}`);
       return res.status(204).send(`ID already processed: ${id}`);
     }
     await logStatus(
@@ -79,8 +81,10 @@ export function createService() {
       process.chdir(tmpFolder);
       console.info(`Working in temp folder: ${tmpFolder}`);
       const start = Date.now() / 1000;
-      const session = new Session();
-      const jatsFile = `${tmpFolder}/${id}.xml`;
+      const session = new Session({
+        logger: basicLogger(LogLevel.debug),
+      });
+      const jatsFile = `${id}.xml`;
       await jatsFetch(session, id, {
         output: jatsFile,
         data: true,
@@ -115,10 +119,11 @@ export function createService() {
       const pdfs = fs
         .readdirSync('.')
         .filter((file) => path.extname(file).toLowerCase() === '.pdf');
+      const filename = pdfs.length === 1 ? `${id}.pdf` : undefined;
       mystYml.project.downloads = [
         ...(mystYml.project.downloads ?? []),
         ...pdfs.map((file): Download => {
-          return { url: file };
+          return { url: file, filename };
         }),
       ];
       mystYml.site.template = TEMPLATE;
@@ -142,6 +147,9 @@ export function createService() {
           await bucket.upload(filePath, { destination });
         } catch {}
       }
+      await bucket.upload(`${id}.xml`, {
+        destination: `${prefix}/content/${id}.xml`,
+      });
       await logStatus(
         bucket,
         prefix,
@@ -163,7 +171,7 @@ export function createService() {
       };
       const buildSize = await util.promisify(fastFolderSize)(`_build/`);
       logData.sizes = {
-        archive: fs.lstatSync(`${id}.tar.gz`),
+        archive: fs.lstatSync(`${id}.tar.gz`).size,
         build: buildSize,
       };
       fs.writeFileSync(logFile, yaml.dump(logData));

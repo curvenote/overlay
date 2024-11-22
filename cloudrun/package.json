@@ -1,6 +1,6 @@
 {
-  "name": "@curvenote/jats-convert-service",
-  "description": "Bundled JATS convert service",
+  "name": "@curvenote/pmc-jats-convert-service",
+  "description": "Bundled PMC JATS convert service",
   "version": "0.0.1",
   "private": true,
   "license": "",
@@ -10,7 +10,11 @@
   },
   "scripts": {
     "start": "node index.js",
-    "gcp-build": ""
+    "build:service": "cd ../convert-service && npm run build && cd ../cloudrun",
+    "build": "npm run build:service && ./build.sh",
+    "deploy": "./deploy.sh",
+    "build:local": "npm run build:service && docker build --tag jats .",
+    "dev": "npm run build:local && ./run.sh"
   },
   "dependencies": {}
 }
