@@ -102,7 +102,6 @@ export const getProcessingStatus = async (
 
 export const triggerPubSub = async (id: string) => {
   let credentials: GoogleAuthOptions['credentials'] | undefined;
-  console.log('client_email', process.env.CLIENT_EMAIL);
   if (process.env.CLIENT_EMAIL && process.env.PRIVATE_KEY) {
     credentials = {
       client_email: process.env.CLIENT_EMAIL,
