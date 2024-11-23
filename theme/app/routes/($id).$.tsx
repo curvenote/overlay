@@ -1,4 +1,9 @@
-import type { LinksFunction, LoaderFunction, V2_MetaFunction } from '@remix-run/node';
+import {
+  redirect,
+  type LinksFunction,
+  type LoaderFunction,
+  type V2_MetaFunction,
+} from '@remix-run/node';
 import { type PageLoader } from '@myst-theme/common';
 import {
   getMetaTagsForArticle,
@@ -9,7 +14,7 @@ import {
   ErrorDocumentNotFound,
   ErrorUnhandled,
 } from '@myst-theme/site';
-import { getConfig, getPage } from '~/utils/loaders.server';
+import { getConfig, getPage, getProcessingStatus, triggerPubSub } from '~/utils/loaders.server';
 import { isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react';
 import type { SiteManifest } from 'myst-config';
 import {
@@ -17,7 +22,6 @@ import {
   UiStateProvider,
   useSiteManifest,
   useThemeTop,
-  useBaseurl,
   ProjectProvider,
   GridSystemProvider,
   SiteProvider,
@@ -42,16 +46,24 @@ export const meta: V2_MetaFunction = (args) => {
 export const links: LinksFunction = () => [KatexCSS];
 
 export const loader: LoaderFunction = async ({ params, request }) => {
-  // const [first, ...rest] = new URL(request.url).pathname.slice(1).split('/');
   const { id } = params;
   if (!id) throw Error('No site');
-  const config = await getConfig(id);
-  const article = await getPage(request, id, {});
-  if (article) {
-    article.frontmatter.identifiers ??= {};
-    article.frontmatter.identifiers.pmcid = id;
+  try {
+    const config = await getConfig(id);
+    const article = await getPage(request, id, {});
+    if (article) {
+      article.frontmatter.identifiers ??= {};
+      article.frontmatter.identifiers.pmcid = id;
+    }
+    return { config, article };
+  } catch (error) {
+    if (!id.match(/^PMC[0-9]+$/)) {
+      throw error;
+    }
+    const { status } = await getProcessingStatus(id);
+    if (status === 'none') await triggerPubSub(id);
+    throw redirect(`/status/${id}`);
   }
-  return { config, article };
 };
 
 export function ArticlePageAndNavigation({
