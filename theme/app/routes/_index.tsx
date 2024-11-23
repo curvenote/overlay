@@ -20,7 +20,7 @@ function Index() {
     setId(event.target.value);
   };
   const handleInputEnter: KeyboardEventHandler = async (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && id.match(/^PMC[0-9]+$/)) {
       await handleSubmit();
     }
   };
