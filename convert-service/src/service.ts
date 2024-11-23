@@ -58,7 +58,7 @@ export function createService() {
 
     const storage = new Storage();
     const bucket = storage.bucket(BUCKET);
-    const prefix = `${FOLDER}/${id}`;
+    const prefix = `${FOLDER}/${id}/`;
     const [files] = await bucket.getFiles({ prefix });
     if (files.length > 0) {
       console.info(`ID already processed: ${id}`);
@@ -140,7 +140,7 @@ export function createService() {
       );
       for await (const filePath of getFiles('_build/site')) {
         try {
-          const destination = `${prefix}/${path.relative(
+          const destination = `${prefix}${path.relative(
             '_build/site',
             filePath
           )}`;
@@ -148,7 +148,7 @@ export function createService() {
         } catch {}
       }
       await bucket.upload(`${id}.xml`, {
-        destination: `${prefix}/content/${id}.xml`,
+        destination: `${prefix}content/${id}.xml`,
       });
       await logStatus(
         bucket,
@@ -175,7 +175,7 @@ export function createService() {
         build: buildSize,
       };
       fs.writeFileSync(logFile, yaml.dump(logData));
-      await bucket.upload(logFile, { destination: `${prefix}/${logFile}` });
+      await bucket.upload(logFile, { destination: `${prefix}${logFile}` });
       process.chdir(cwd);
       removeFolder(tmpFolder);
       await logStatus(

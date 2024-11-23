@@ -49,7 +49,7 @@ export async function logStatus(
   progress?: number
 ) {
   if (message) console.info(message);
-  const logFile = `${prefix}/status.json`;
+  const logFile = `${prefix}status.json`;
   const logEntry = { timestamp: +Date.now(), status, message, progress };
   await bucket.file(logFile).save(JSON.stringify(logEntry));
 }
