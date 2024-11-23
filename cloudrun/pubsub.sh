@@ -8,6 +8,11 @@ gcloud run services add-iam-policy-binding pmc-jats-convert-service \
   --role=roles/run.invoker \
   --region us-central1
 
+# Give it permission to publish to pubsub
+gcloud projects add-iam-policy-binding curvenote-dev-1 \
+  --member=serviceAccount:pmc-jats-convert-invoker@curvenote-dev-1.iam.gserviceaccount.com \
+  --role=roles/pubsub.publisher
+
 # Give it permission to create auth tokens
 gcloud projects add-iam-policy-binding curvenote-dev-1 \
    --member=serviceAccount:service-532105236354@gcp-sa-pubsub.iam.gserviceaccount.com \
