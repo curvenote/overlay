@@ -1,6 +1,6 @@
 import { Link, useFetcher, useNavigate } from '@remix-run/react';
 import { type ActionFunction } from '@remix-run/node';
-import type { ChangeEventHandler } from 'react';
+import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import { Admonition, AdmonitionKind } from 'myst-to-react';
 import { getFolders } from '~/utils/loaders.server';
@@ -18,6 +18,11 @@ function Index() {
   const navigate = useNavigate();
   const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     setId(event.target.value);
+  };
+  const handleInputEnter: KeyboardEventHandler = async (event) => {
+    if (event.key === 'Enter') {
+      await handleSubmit();
+    }
   };
   const handleSubmit = async () => {
     if (id) {
@@ -62,6 +67,7 @@ function Index() {
           onChange={handleChange}
           value={id}
           disabled={inputDisabled}
+          onKeyDown={handleInputEnter}
         />
         <button className="pmc-submit" onClick={handleSubmit} disabled={buttonDisabled}>
           Submit
