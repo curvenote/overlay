@@ -4,6 +4,8 @@ import type { SiteManifest } from 'myst-config';
 import * as cdn from '@curvenote/cdn';
 import { type Host } from '@curvenote/common';
 import { getDomainFromRequest } from '@myst-theme/site';
+import type { GoogleAuthOptions } from '@google-cloud/storage/build/cjs/src/nodejs-common';
+import { JSONClient } from 'google-auth-library/build/src/auth/googleauth';
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
@@ -99,7 +101,17 @@ export const getProcessingStatus = async (
 };
 
 export const triggerPubSub = async (id: string) => {
-  const pubsub = new PubSub({ projectId: PROJECT });
+  let credentials: GoogleAuthOptions['credentials'] | undefined;
+  if (process.env.CLIENT_EMAIL && process.env.PRIVATE_KEY) {
+    credentials = {
+      client_email: process.env.CLIENT_EMAIL,
+      private_key: process.env.PRIVATE_KEY,
+    };
+  }
+  const pubsub = new PubSub({
+    projectId: PROJECT,
+    credentials,
+  });
   const topic = pubsub.topic(TOPIC);
   console.log(`triggering pubsub: ${id}`);
   await topic.publishMessage({ attributes: { id } });
