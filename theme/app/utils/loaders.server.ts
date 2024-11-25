@@ -5,7 +5,6 @@ import * as cdn from '@curvenote/cdn';
 import { type Host } from '@curvenote/common';
 import { getDomainFromRequest } from '@myst-theme/site';
 import type { GoogleAuthOptions } from '@google-cloud/storage/build/cjs/src/nodejs-common';
-import { JSONClient } from 'google-auth-library/build/src/auth/googleauth';
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
@@ -115,4 +114,5 @@ export const triggerPubSub = async (id: string) => {
   const topic = pubsub.topic(TOPIC);
   console.log(`triggering pubsub: ${id}`);
   await topic.publishMessage({ attributes: { id } });
+  console.log(`done triggering: ${id}`);
 };
