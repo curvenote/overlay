@@ -101,11 +101,8 @@ export const getProcessingStatus = async (
 
 export const triggerPubSub = async (id: string) => {
   let credentials: GoogleAuthOptions['credentials'] | undefined;
-  if (process.env.CLIENT_EMAIL && process.env.PRIVATE_KEY) {
-    credentials = {
-      client_email: process.env.CLIENT_EMAIL,
-      private_key: process.env.PRIVATE_KEY,
-    };
+  if (process.env.KEYFILE) {
+    credentials = JSON.parse(process.env.KEYFILE);
   }
   const pubsub = new PubSub({
     projectId: PROJECT,
