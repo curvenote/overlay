@@ -68,7 +68,7 @@ export function createService() {
       bucket,
       prefix,
       'processing',
-      `Downloading data for ${id}`,
+      `${id}: Downloading data`,
       TS0 / TS5
     );
     let tmpFolder: string | undefined;
@@ -94,7 +94,7 @@ export function createService() {
         bucket,
         prefix,
         'processing',
-        `Converting data to MyST for ${id}`,
+        `${id}: Converting data for Curvenote`,
         TS1 / TS5
       );
       const downloadDone = Date.now() / 1000;
@@ -107,7 +107,7 @@ export function createService() {
         bucket,
         prefix,
         'processing',
-        `Building MyST site for ${id}`,
+        `${id}: Building Curvenote site`,
         TS2 / TS5
       );
       await init(session, { project: true, site: true });
@@ -135,7 +135,7 @@ export function createService() {
         bucket,
         prefix,
         'processing',
-        `Saving data for ${id}`,
+        `${id}: Saving data`,
         TS3 / TS5
       );
       for await (const filePath of getFiles('_build/site')) {
@@ -154,7 +154,7 @@ export function createService() {
         bucket,
         prefix,
         'processing',
-        `Finalizing processing for ${id}`,
+        `${id}: Finalizing processing`,
         TS4 / TS5
       );
       const uploadDone = Date.now() / 1000;
@@ -182,7 +182,7 @@ export function createService() {
         bucket,
         prefix,
         'success',
-        `Completed processing ${id}`,
+        `${id}: Processing Complete`,
         1
       );
       return res.sendStatus(204);
