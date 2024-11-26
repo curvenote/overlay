@@ -28,6 +28,7 @@ import {
 } from '@myst-theme/providers';
 import LaunchpadMessage from '~/components/LaunchpadMessage';
 import { ArticlePage } from '~/components/ArticlePage';
+import { NotFoundError } from '~/utils/errors';
 
 type LoaderData = { config: SiteManifest; article: PageLoader };
 
@@ -47,7 +48,7 @@ export const links: LinksFunction = () => [KatexCSS];
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   const { id } = params;
-  if (!id) throw Error('No site');
+  if (!id) throw NotFoundError();
   try {
     const config = await getConfig(id);
     const article = await getPage(request, id, {});

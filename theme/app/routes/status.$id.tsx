@@ -2,13 +2,14 @@ import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData, useNavigate, useParams, useRevalidator } from '@remix-run/react';
 import { useEffect, useState } from 'react';
+import { NotFoundError } from '~/utils/errors';
 import { getProcessingStatus } from '~/utils/loaders.server';
 import ProgressScreen from '~/utils/progress';
 import useInterval from '~/utils/useInterval';
 
 export const loader: LoaderFunction = async ({ params }) => {
   const { id } = params;
-  if (!id) throw Error('No site');
+  if (!id) throw NotFoundError();
   const status = await getProcessingStatus(id);
   return json(status);
 };

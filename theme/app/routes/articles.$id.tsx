@@ -1,10 +1,9 @@
 import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 import { NotFoundError } from '~/utils/errors';
-import { getJatsXml } from '~/utils/loaders.server';
 
 export const loader: LoaderFunction = async ({ params }) => {
   const { id } = params;
   if (!id || !id.match(/^PMC[0-9]*$/)) throw NotFoundError();
-  const jatsXml = await getJatsXml(id);
-  return new Response(jatsXml, { headers: { 'Content-Type': 'application/xml' } });
+  throw redirect(`/${id}`);
 };
