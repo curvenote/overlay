@@ -65,11 +65,17 @@ function Index() {
           type="text"
           placeholder="PMC ID"
           onChange={handleChange}
+          onInput={handleChange}
           value={id}
           disabled={inputDisabled}
           onKeyDown={handleInputEnter}
         />
-        <button className="pmc-submit" onClick={handleSubmit} disabled={buttonDisabled}>
+        <button
+          className="pmc-submit"
+          onClick={handleSubmit}
+          onTouchEnd={handleSubmit}
+          disabled={buttonDisabled}
+        >
           Submit
         </button>
         <h3>Previously processed examples:</h3>
@@ -77,6 +83,7 @@ function Index() {
           <button
             className="pmc-submit"
             onClick={handleFolders}
+            onTouchEnd={handleFolders}
             disabled={fetcher.state !== 'idle'}
           >
             Load...
