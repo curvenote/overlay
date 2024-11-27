@@ -73,6 +73,10 @@ export const getProcessingStatus = async (
   status?: 'none' | 'processing' | 'success' | 'failure';
   message?: string;
   progress?: number;
+  error?: 'invalid' | 'non-pmc' | 'non-oa' | 'non-cc';
+  doi?: string;
+  citation?: string;
+  license?: string;
 }> => {
   try {
     const storage = new Storage();
@@ -85,6 +89,10 @@ export const getProcessingStatus = async (
         status?: 'processing' | 'success' | 'failure';
         message?: string;
         progress?: number;
+        error?: 'invalid' | 'non-pmc' | 'non-oa' | 'non-cc';
+        doi?: string;
+        citation?: string;
+        license?: string;
       };
       return result;
     }
@@ -111,5 +119,5 @@ export const triggerPubSub = async (id: string) => {
   const topic = pubsub.topic(TOPIC);
   console.log(`triggering pubsub: ${id}`);
   await topic.publishMessage({ attributes: { id } });
-  console.log(`done triggering: ${id}`);
+  console.log(`done triggering pubsub: ${id}`);
 };

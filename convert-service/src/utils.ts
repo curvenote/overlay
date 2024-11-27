@@ -10,6 +10,10 @@ export function respondBadRequest(res: Response, msg: string) {
   return res.status(204).send(`Bad Request: ${msg}`);
 }
 
+export function respondUnableToProcess(res: Response, id: string) {
+  return res.status(204).send(`Unable to process ${id}`);
+}
+
 export function removeFolder(folder?: string) {
   if (folder && fs.existsSync(folder)) {
     fs.rmSync(folder, { recursive: true });
@@ -45,11 +49,26 @@ export async function logStatus(
   bucket: Bucket,
   prefix: string,
   status: 'processing' | 'success' | 'failure',
-  message?: string,
-  progress?: number
+  opts?: {
+    message?: string;
+    progress?: number;
+    error?: 'invalid' | 'non-pmc' | 'non-oa' | 'non-cc';
+    doi?: string;
+    citation?: string;
+    license?: string;
+  }
 ) {
-  if (message) console.info(message);
+  if (opts?.message) console.info(opts?.message);
   const logFile = `${prefix}status.json`;
-  const logEntry = { timestamp: +Date.now(), status, message, progress };
+  const logEntry = {
+    timestamp: +Date.now(),
+    status,
+    message: opts?.message,
+    progress: opts?.progress,
+    error: opts?.error,
+    doi: opts?.doi,
+    citation: opts?.citation,
+    license: opts?.license,
+  };
   await bucket.file(logFile).save(JSON.stringify(logEntry));
 }

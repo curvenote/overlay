@@ -2,7 +2,6 @@
 
 docker run \
   -p 8080:8080 \
-  -v $(pwd)/oa_file_list.csv:/usr/app/listing.csv \
   -v ~/.config/gcloud/application_default_credentials.json:/usr/app/application_default_credentials.json \
   -e GOOGLE_APPLICATION_CREDENTIALS=/usr/app/application_default_credentials.json \
   -e AWS_ACCESS_KEY_ID=$(aws configure get default.aws_access_key_id) \

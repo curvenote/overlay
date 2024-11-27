@@ -3,7 +3,6 @@ FROM node:20-bullseye-slim
 RUN apt-get -y update
 RUN apt-get -y install curl
 RUN mkdir -p /usr/app/theme
-RUN curl -C - -o /usr/app/listing.csv https://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_file_list.csv
 RUN echo "jtex: v1" > /usr/app/theme/template.yml
 
 RUN npm update -g npm

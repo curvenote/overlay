@@ -6,7 +6,7 @@ import express from 'express';
 import yaml from 'js-yaml';
 import fastFolderSize from 'fast-folder-size';
 import { Storage } from '@google-cloud/storage';
-import { jatsFetch } from 'jats-fetch';
+import { convertPMCID2DOI, getDownloadMetadata, jatsFetch } from 'jats-fetch';
 import { jatsConvert } from 'jats-convert';
 import { build, init, Session } from 'myst-cli';
 import { basicLogger, LogLevel } from 'myst-cli-utils';
@@ -17,6 +17,7 @@ import {
   logStatus,
   removeFolder,
   respondBadRequest,
+  respondUnableToProcess,
 } from './utils.js';
 
 const PROJECT = 'curvenote-dev-1';
@@ -27,7 +28,7 @@ const LISTING = '/usr/app/listing.csv';
 const TEMPLATE = '/usr/app/theme';
 
 // Time steps for logging, based on some averages
-const TS0 = 1; // start
+const TS0 = 2; // start
 const TS1 = TS0 + 6; // download done
 const TS2 = TS1 + 2; // convert done
 const TS3 = TS2 + 10; // build done
@@ -44,7 +45,6 @@ export function createService() {
     console.info('BUCKET', BUCKET);
     console.info('FOLDER', FOLDER);
 
-    // accept message & validate
     const { body } = req;
     if (!req.body) return respondBadRequest(res, 'no Pub/Sub message received');
 
@@ -53,7 +53,7 @@ export function createService() {
       return respondBadRequest(res, 'invalid Pub/Sub message format');
     const { attributes } = message;
 
-    const { id } = attributes ?? {};
+    const { id } = (attributes ?? {}) as { id?: string };
     if (!id) return respondBadRequest(res, 'no ID in Pub/Sub message');
 
     const storage = new Storage();
@@ -64,52 +64,94 @@ export function createService() {
       console.info(`ID already processed: ${id}`);
       return res.status(204).send(`ID already processed: ${id}`);
     }
-    await logStatus(
-      bucket,
-      prefix,
-      'processing',
-      `${id}: Downloading data`,
-      TS0 / TS5
-    );
     let tmpFolder: string | undefined;
     let cwd: string | undefined;
     try {
+      if (!id.match(/^PMC[0-9]+$/)) {
+        await logStatus(bucket, prefix, 'failure', {
+          message: `${id}: Invalid PMC ID`,
+          error: 'invalid',
+        });
+        return respondUnableToProcess(res, id);
+      }
+      await logStatus(bucket, prefix, 'processing', {
+        message: `${id}: Validating PMC ID`,
+        progress: 0 / TS5,
+      });
+      const start = Date.now() / 1000;
+      const session = new Session({
+        logger: basicLogger(LogLevel.debug),
+      });
+      let gzurl: string;
+      let citation: string | undefined;
+      let license: string | undefined;
+      try {
+        const metadata = await getDownloadMetadata(id);
+        gzurl = metadata.url;
+        citation = metadata.citation;
+        license = metadata.license;
+      } catch {
+        const doi = await convertPMCID2DOI(session, id);
+        if (doi) {
+          await logStatus(bucket, prefix, 'failure', {
+            message: `${id}: PMC ID is not open access`,
+            error: 'non-oa',
+            doi,
+          });
+        } else {
+          await logStatus(bucket, prefix, 'failure', {
+            message: `${id}: PMC ID cannot be found`,
+            error: 'non-pmc',
+          });
+        }
+        return respondUnableToProcess(res, id);
+      }
+      if (!license || !license.startsWith('CC')) {
+        const doi = await convertPMCID2DOI(session, id);
+        await logStatus(bucket, prefix, 'failure', {
+          message: `${id}: PMC ID is not CC-licensed`,
+          error: 'non-cc',
+          doi,
+          citation,
+          license,
+        });
+        return respondUnableToProcess(res, id);
+      }
+      await logStatus(bucket, prefix, 'processing', {
+        message: `${id}: Downloading data`,
+        progress: TS0 / TS5,
+        citation,
+        license,
+      });
       cwd = process.cwd();
       tmpFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'jats'));
       removeFolder(tmpFolder);
       fs.mkdirSync(tmpFolder, { recursive: true });
       process.chdir(tmpFolder);
       console.info(`Working in temp folder: ${tmpFolder}`);
-      const start = Date.now() / 1000;
-      const session = new Session({
-        logger: basicLogger(LogLevel.debug),
-      });
       const jatsFile = `${id}.xml`;
-      await jatsFetch(session, id, {
+      await jatsFetch(session, gzurl, {
         output: jatsFile,
         data: true,
-        listing: LISTING,
       });
-      await logStatus(
-        bucket,
-        prefix,
-        'processing',
-        `${id}: Converting data for Curvenote`,
-        TS1 / TS5
-      );
+      await logStatus(bucket, prefix, 'processing', {
+        message: `${id}: Converting data for Curvenote`,
+        progress: TS1 / TS5,
+        citation,
+        license,
+      });
       const downloadDone = Date.now() / 1000;
       await jatsConvert(session, jatsFile, {
         frontmatter: 'project',
         dois: false,
         bibtex: true,
       });
-      await logStatus(
-        bucket,
-        prefix,
-        'processing',
-        `${id}: Building Curvenote site`,
-        TS2 / TS5
-      );
+      await logStatus(bucket, prefix, 'processing', {
+        message: `${id}: Building Curvenote site`,
+        progress: TS2 / TS5,
+        citation,
+        license,
+      });
       await init(session, { project: true, site: true });
       const mystFile = 'myst.yml';
       const mystYml = yaml.load(fs.readFileSync(mystFile).toString()) as {
@@ -131,13 +173,12 @@ export function createService() {
       await session.reload();
       await build(session, [], { site: true });
       const processDone = Date.now() / 1000;
-      await logStatus(
-        bucket,
-        prefix,
-        'processing',
-        `${id}: Saving data`,
-        TS3 / TS5
-      );
+      await logStatus(bucket, prefix, 'processing', {
+        message: `${id}: Saving data`,
+        progress: TS3 / TS5,
+        citation,
+        license,
+      });
       for await (const filePath of getFiles('_build/site')) {
         try {
           const destination = `${prefix}${path.relative(
@@ -150,13 +191,12 @@ export function createService() {
       await bucket.upload(`${id}.xml`, {
         destination: `${prefix}content/${id}.xml`,
       });
-      await logStatus(
-        bucket,
-        prefix,
-        'processing',
-        `${id}: Finalizing processing`,
-        TS4 / TS5
-      );
+      await logStatus(bucket, prefix, 'processing', {
+        message: `${id}: Finalizing processing`,
+        progress: TS4 / TS5,
+        citation,
+        license,
+      });
       const uploadDone = Date.now() / 1000;
       const logFile = `${id}.log.yml`;
       const logData = yaml.load(fs.readFileSync(logFile).toString()) as Record<
@@ -178,17 +218,18 @@ export function createService() {
       await bucket.upload(logFile, { destination: `${prefix}${logFile}` });
       process.chdir(cwd);
       removeFolder(tmpFolder);
-      await logStatus(
-        bucket,
-        prefix,
-        'success',
-        `${id}: Processing Complete`,
-        1
-      );
+      await logStatus(bucket, prefix, 'success', {
+        message: `${id}: Processing Complete`,
+        progress: 1,
+        citation,
+        license,
+      });
       return res.sendStatus(204);
     } catch (err: any) {
       try {
-        await logStatus(bucket, prefix, 'failure', `Unable to process ${id}`);
+        await logStatus(bucket, prefix, 'failure', {
+          message: `Unable to process ${id}`,
+        });
       } catch {
         // Carry on if logging the failure errors.
       }
@@ -196,7 +237,7 @@ export function createService() {
       console.error(`JATS convert job failed for ID: ${id}`);
       if (cwd) process.chdir(cwd);
       removeFolder(tmpFolder);
-      return res.status(204).send(`Unable to process ${id}`);
+      return respondUnableToProcess(res, id);
     }
   });
 

@@ -52,18 +52,18 @@ export default function Page() {
     }
   }, [count]);
   useLivePageData(status !== 'failure' && status !== 'success' && !error, 1000);
-  let color = '#4caf50';
   let message = data.message ?? '';
-  let progress = data.progress ?? 0;
-  if (error) {
-    message = error;
-  }
-  if (status === 'failure') {
-    color = '#FF0000';
-    progress = 1;
-  }
+  const progress = data.progress ?? 0;
   if (status === 'success') {
     message = `Processing ${id} complete! Redirecting to article...`;
   }
-  return <ProgressScreen message={message} progress={progress} color={color} />;
+  return (
+    <ProgressScreen
+      status={status}
+      message={message}
+      doi={data.doi}
+      citation={data.citation}
+      progress={progress}
+    />
+  );
 }
