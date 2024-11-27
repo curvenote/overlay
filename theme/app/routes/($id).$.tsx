@@ -48,7 +48,7 @@ export const links: LinksFunction = () => [KatexCSS];
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   const { id } = params;
-  if (!id) throw NotFoundError();
+  if (!id || !id.match(/^PMC[0-9]+$/)) throw NotFoundError();
   try {
     const config = await getConfig(id);
     const article = await getPage(request, id, {});
@@ -58,9 +58,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     }
     return { config, article };
   } catch (error) {
-    if (!id.match(/^PMC[0-9]+$/)) {
-      throw error;
-    }
     const { status } = await getProcessingStatus(id);
     if (status === 'none') await triggerPubSub(id);
     throw redirect(`/status/${id}`);

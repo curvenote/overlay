@@ -1,5 +1,5 @@
 import { Link, useFetcher, useNavigate } from '@remix-run/react';
-import { type ActionFunction } from '@remix-run/node';
+import type { ActionFunction } from '@remix-run/node';
 import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import { Admonition, AdmonitionKind } from 'myst-to-react';
@@ -28,8 +28,7 @@ function Index() {
     if (id) {
       setButtonDisabled(true);
       setInputDisabled(true);
-      await fetch(`/start/${id}`, { method: 'POST' });
-      navigate({ pathname: `/status/${id}` });
+      navigate(`/${id}`);
     }
   };
   useEffect(() => {
