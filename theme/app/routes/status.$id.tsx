@@ -1,16 +1,20 @@
 import type { LoaderFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 import { useLoaderData, useNavigate, useParams, useRevalidator } from '@remix-run/react';
 import { useEffect, useState } from 'react';
+import ProgressScreen from '~/components/ProgressScreen';
 import { NotFoundError } from '~/utils/errors';
 import { getProcessingStatus } from '~/utils/loaders.server';
-import ProgressScreen from '~/utils/progress';
 import useInterval from '~/utils/useInterval';
 
 export const loader: LoaderFunction = async ({ params }) => {
   const { id } = params;
   if (!id) throw NotFoundError();
   const status = await getProcessingStatus(id);
+  // If processing was successful and the result is old, redirect immediately
+  if (status.status === 'success' && Date.now() - (status.timestamp ?? 0) > 2000) {
+    throw redirect(`/${id}`);
+  }
   return json(status);
 };
 
@@ -39,19 +43,19 @@ export default function Page() {
   useEffect(() => {
     if (status === 'success') {
       setTimeout(() => {
-        navigate({ pathname: `/${id}` });
-      }, 2000);
+        navigate({ pathname: `/${id}` }, { replace: true });
+      }, 300);
     }
     if (status === 'none') {
       setCount((c) => c + 1);
     }
   }, [status, timestamp]);
   useEffect(() => {
-    if (count >= 20) {
+    if (count >= 40) {
       setError('Failed to start');
     }
   }, [count]);
-  useLivePageData(status !== 'failure' && status !== 'success' && !error, 1000);
+  useLivePageData(status !== 'failure' && status !== 'success' && !error, 500);
   let message = data.message ?? '';
   const progress = data.progress ?? 0;
   if (status === 'success') {
