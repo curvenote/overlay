@@ -2,7 +2,6 @@ import type { LinksFunction, LoaderFunction, V2_MetaFunction } from '@remix-run/
 import tailwind from '~/styles/app.css';
 import type { SiteLoader } from '@myst-theme/common';
 import { Document, getMetaTagsForSite, getThemeSession } from '@myst-theme/site';
-import { ErrorSiteExpired } from './components/ErrorSiteExpired';
 import { ErrorSiteNotFound } from './components/ErrorSiteNotFound';
 import { Outlet, useCatch, useLoaderData } from '@remix-run/react';
 import { Theme } from '@myst-theme/providers';
@@ -44,15 +43,12 @@ export const loader: LoaderFunction = async ({ request }): Promise<SiteLoader> =
 
 export function CatchBoundary() {
   const caught = useCatch();
-  const isLaunchpad =
-    typeof document === 'undefined' ? false : window.location.hostname.startsWith('launchpad-');
 
   return (
     <Document theme={Theme.light} title={caught.statusText}>
       <article className="content">
         <main className="error-content">
-          {isLaunchpad && <ErrorSiteExpired />}
-          {!isLaunchpad && <ErrorSiteNotFound />}
+          <ErrorSiteNotFound />
         </main>
       </article>
     </Document>
