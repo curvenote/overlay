@@ -26,11 +26,11 @@ import {
   GridSystemProvider,
   SiteProvider,
 } from '@myst-theme/providers';
-import LaunchpadMessage from '~/components/LaunchpadMessage';
 import { ArticlePage } from '~/components/ArticlePage';
 import { NotFoundError } from '~/utils/errors';
+import GitHubIssueButton from '~/components/GitHubIssueButton';
 
-type LoaderData = { config: SiteManifest; article: PageLoader };
+type LoaderData = { config: SiteManifest; article: PageLoader; id: string };
 
 export const meta: V2_MetaFunction = (args) => {
   const { config, article } = (args?.data as LoaderData) ?? {};
@@ -56,7 +56,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       article.frontmatter.identifiers ??= {};
       article.frontmatter.identifiers.pmcid = id;
     }
-    return { config, article };
+    return { config, article, id };
   } catch (error) {
     const { status } = await getProcessingStatus(id);
     if (status === 'none') await triggerPubSub(id);
@@ -97,7 +97,7 @@ interface ThemeTemplateOptions {
 
 export default function Page() {
   const { container, outline } = useOutlineHeight();
-  const { config, article } = useLoaderData() as LoaderData;
+  const { config, article, id } = useLoaderData() as LoaderData;
   const pageDesign: ThemeTemplateOptions =
     (article.frontmatter as any)?.site ?? (article.frontmatter as any)?.design ?? {};
   const siteDesign: ThemeTemplateOptions =
@@ -111,6 +111,7 @@ export default function Page() {
       <SiteProvider config={config}>
         <ProjectProvider project={config.projects?.[0]}>
           <main ref={container} className="article-left-grid subgrid-gap col-screen">
+            <GitHubIssueButton id={id} />
             {!hide_outline && (
               <div
                 className="sticky z-10 hidden h-0 col-margin-right-inset lg:block"
@@ -125,7 +126,6 @@ export default function Page() {
             )}
             <ArticlePage article={article} hide_all_footer_links={hide_footer_links} />
           </main>
-          {typeof document === 'undefined' ? null : <LaunchpadMessage />}
         </ProjectProvider>
       </SiteProvider>
     </ArticlePageAndNavigation>
