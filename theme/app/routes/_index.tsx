@@ -11,8 +11,12 @@ export const action: ActionFunction = async ({ request }) => {
   return { folders: await getFolders() };
 };
 
+const buttonClasses = `px-6 py-2 font-medium rounded-md shadow transition 
+  bg-blue-800 text-white hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+  disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50`;
+
 function Index() {
-  const [id, setId] = useState('PMC');
+  const [id, setId] = useState('');
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [inputDisabled, setInputDisabled] = useState(false);
   const navigate = useNavigate();
@@ -59,30 +63,25 @@ function Index() {
           </p>
         </Admonition>
         <text>Enter PMC ID: </text>
-        <input
-          className="pmc-submit"
-          type="text"
-          placeholder="PMC ID"
-          onChange={handleChange}
-          onInput={handleChange}
-          value={id}
-          disabled={inputDisabled}
-          onKeyDown={handleInputEnter}
-        />
-        <button
-          className="pmc-submit"
-          onClick={handleSubmit}
-          onTouchEnd={handleSubmit}
-          disabled={buttonDisabled}
-        >
-          Submit
-        </button>
+        <div className="flex items-center space-x-2">
+          <input
+            className="flex-grow px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            type="text"
+            placeholder="PMC###"
+            onChange={handleChange}
+            value={id}
+            disabled={inputDisabled}
+            onKeyDown={handleInputEnter}
+          />
+          <button className={buttonClasses} onClick={handleSubmit} disabled={buttonDisabled}>
+            Submit
+          </button>
+        </div>
         <h3>Previously processed examples:</h3>
         {!fetcher.data?.folders && (
           <button
-            className="pmc-submit"
+            className={buttonClasses}
             onClick={handleFolders}
-            onTouchEnd={handleFolders}
             disabled={fetcher.state !== 'idle'}
           >
             Load...

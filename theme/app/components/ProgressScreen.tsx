@@ -17,13 +17,13 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({
 }) => {
   if (status === 'failure') {
     return (
-      <div style={styles.container}>
-        <div style={styles.errorMessage}>{message}</div>
-        {citation && <div style={styles.citation}>Citation: {citation}</div>}
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100 text-center">
+        <div className="text-red-600 text-lg font-bold">{message}</div>
+        {citation && <div className="text-gray-600 mt-2 text-sm">Citation: {citation}</div>}
         {doi && (
-          <div style={styles.doiMessage}>
+          <div className="mt-4 text-sm">
             You may be able to view the source article here:{' '}
-            <a href={`https://doi.org/${doi}`} style={styles.doiLink}>
+            <a href={`https://doi.org/${doi}`} className="text-blue-500 underline">
               {doi}
             </a>
           </div>
@@ -32,79 +32,19 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({
     );
   }
 
-  const progressStyle: React.CSSProperties = {
-    width: `${progress * 100}%`,
-    transition: 'width 0.5s ease',
-  };
-
   return (
-    <div style={styles.container}>
-      <div style={styles.message}>{message}</div>
-      {citation && <div style={styles.citation}>{citation}</div>}
-      <div style={styles.progressBar}>
-        <div style={{ ...styles.progress, ...progressStyle }} />
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 text-center">
+      <div className="text-lg font-semibold mb-4">{message}</div>
+      {citation && <div className="text-gray-600 mt-4 text-sm">{citation}</div>}
+      <div className="w-3/4 h-4 mb-4 bg-gray-200 rounded-full dark:bg-gray-700">
+        <div
+          className="h-4 bg-blue-800 rounded-full dark:bg-blue-900"
+          style={{ width: `${progress * 100}%` }}
+        ></div>
       </div>
-      <div style={styles.percentage}>{Math.round(progress * 100)}%</div>
+      <div className="mt-2 text-sm text-gray-600">{Math.round(progress * 100)}%</div>
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    backgroundColor: '#f5f5f5',
-    color: '#333',
-    fontFamily: 'Arial, sans-serif',
-    textAlign: 'center',
-  },
-  message: {
-    marginBottom: '20px',
-    fontSize: '18px',
-    fontWeight: 'bold',
-  },
-  errorMessage: {
-    color: '#d32f2f', // Red for error message
-    fontSize: '20px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-  },
-  citation: {
-    marginBottom: '20px',
-    fontSize: '14px',
-    color: '#666',
-  },
-  doiMessage: {
-    marginTop: '20px',
-    fontSize: '14px',
-    color: '#333',
-  },
-  doiLink: {
-    color: '#345E98',
-    textDecoration: 'none',
-  },
-  progressBar: {
-    width: '80%',
-    height: '20px',
-    backgroundColor: '#e0e0e0',
-    borderRadius: '10px',
-    overflow: 'hidden',
-    boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.2)',
-    position: 'relative',
-  },
-  progress: {
-    height: '100%',
-    backgroundColor: '#4caf50',
-    borderRadius: '10px 0 0 10px',
-  },
-  percentage: {
-    marginTop: '10px',
-    fontSize: '14px',
-    color: '#666',
-  },
 };
 
 export default ProgressScreen;
