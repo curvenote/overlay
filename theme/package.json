@@ -1,5 +1,5 @@
 {
-  "name": "@curvespace/default",
+  "name": "@curvenote/jats-service",
   "private": true,
   "sideEffects": false,
   "scripts": {

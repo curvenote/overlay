@@ -13,6 +13,7 @@
     "lint": "turbo run lint",
     "lint:format": "turbo run lint:format",
     "lint:circular": "madge -c packages/*/src/*",
+    "compile": "turbo run compile",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "changeset": "changeset",
