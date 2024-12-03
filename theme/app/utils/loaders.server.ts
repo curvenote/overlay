@@ -8,7 +8,7 @@ import type { GoogleAuthOptions } from '@google-cloud/storage/build/cjs/src/node
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
-const FOLDER = 'convert-service-test-0';
+const FOLDER = 'convert-service-test-1';
 const TOPIC = 'pmcJatsConvertTopic';
 
 const CDN = `https://storage.googleapis.com/${BUCKET}/${FOLDER}/`;

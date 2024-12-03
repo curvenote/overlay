@@ -22,7 +22,7 @@ import {
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
-const FOLDER = 'convert-service-test-0';
+const FOLDER = 'convert-service-test-1';
 
 const LISTING = '/usr/app/listing.csv';
 const TEMPLATE = '/usr/app/theme';
@@ -106,10 +106,10 @@ export function createService() {
         }
         return respondUnableToProcess(res, id);
       }
-      if (!license || !license.startsWith('CC')) {
+      if (!license || !['CC BY', 'CC0'].includes(license)) {
         const doi = await convertPMCID2DOI(session, id);
         await logStatus(bucket, prefix, 'failure', {
-          message: `${id}: PMC ID is not CC-licensed`,
+          message: `${id}: PMC ID is not CC-BY or CC0 licensed`,
           error: 'non-cc',
           doi,
           citation,
