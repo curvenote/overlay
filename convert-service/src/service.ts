@@ -109,7 +109,7 @@ export function createService() {
       if (!license || !['CC BY', 'CC0'].includes(license)) {
         const doi = await convertPMCID2DOI(session, id);
         await logStatus(bucket, prefix, 'failure', {
-          message: `${id}: PMC ID is not CC-BY or CC0 licensed`,
+          message: `${id}: PMC article must be CC-BY or CC0 (License: ${license ?? 'None'})`,
           error: 'non-cc',
           doi,
           citation,
