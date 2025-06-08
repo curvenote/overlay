@@ -16,7 +16,7 @@ export const loader: LoaderFunction = async ({ params }) => {
   if (status.status === 'success' && Date.now() - (status.timestamp ?? 0) > 2000) {
     throw redirect(`/doi/${id}`);
   }
-  return json(status);
+  return json({ ...status, id });
 };
 
 function useLivePageData(activate: boolean, delay: number) {
@@ -34,12 +34,11 @@ function useLivePageData(activate: boolean, delay: number) {
 }
 
 export default function Page() {
-  const data = useLoaderData() as Awaited<ReturnType<typeof getProcessingStatus>>;
-  const { status, timestamp } = data;
+  const data = useLoaderData() as Awaited<ReturnType<typeof getProcessingStatus>> & { id: string };
+  const { status, timestamp, id } = data;
   const navigate = useNavigate();
   const { prefix, suffix } = useParams();
   if (!prefix || !suffix) throw NotFoundError();
-  const id = prefixSuffixToId(prefix, suffix);
   const [count, setCount] = useState(0);
   const [error, setError] = useState<string | undefined>(undefined);
 
