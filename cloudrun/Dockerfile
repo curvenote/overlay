@@ -11,6 +11,7 @@ RUN apt-get -y install ghostscript
 RUN apt-get -y install imagemagick
 RUN apt-get -y install zip unzip
 RUN apt-get -y install inkscape
+RUN apt-get -y install ffmpeg
 RUN convert -version
 
 WORKDIR /usr/app

@@ -5,7 +5,7 @@ gcloud run deploy pmc-jats-convert-service \
   --image gcr.io/curvenote-dev-1/pmc-jats-convert-service:$(git rev-parse --short HEAD) \
   --platform managed \
   --ingress internal \
-  --memory 4G \
+  --memory 8G \
   --concurrency 1 \
   --min-instances 0 \
   --max-instances 10 \
