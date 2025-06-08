@@ -14,9 +14,9 @@ export const loader: LoaderFunction = async ({ params }) => {
   const status = await getProcessingStatus(id);
   // If processing was successful and the result is old, redirect immediately
   if (status.status === 'success' && Date.now() - (status.timestamp ?? 0) > 2000) {
-    throw redirect(`/doi/${id}`);
+    throw redirect(`/doi/${prefix}/${suffix}`);
   }
-  return json({ ...status, id });
+  return json({ ...status });
 };
 
 function useLivePageData(activate: boolean, delay: number) {
@@ -34,8 +34,8 @@ function useLivePageData(activate: boolean, delay: number) {
 }
 
 export default function Page() {
-  const data = useLoaderData() as Awaited<ReturnType<typeof getProcessingStatus>> & { id: string };
-  const { status, timestamp, id } = data;
+  const data = useLoaderData() as Awaited<ReturnType<typeof getProcessingStatus>>;
+  const { status, timestamp, target } = data;
   const navigate = useNavigate();
   const { prefix, suffix } = useParams();
   if (!prefix || !suffix) throw NotFoundError();
@@ -45,7 +45,7 @@ export default function Page() {
   useEffect(() => {
     if (status === 'success') {
       setTimeout(() => {
-        navigate({ pathname: `/doi/${id}` }, { replace: true });
+        navigate({ pathname: `/doi/${prefix}/${suffix}` }, { replace: true });
       }, 300);
     }
     if (status === 'none') {
@@ -61,7 +61,7 @@ export default function Page() {
   let message = data.message ?? '';
   const progress = data.progress ?? 0;
   if (status === 'success') {
-    message = `Processing ${id} complete! Redirecting to article...`;
+    message = `Processing ${target ?? `${prefix}/${suffix}`} complete! Redirecting to article...`;
   }
   return (
     <ProgressScreen

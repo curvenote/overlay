@@ -94,8 +94,8 @@ export async function processTarget(
       await bucket.upload(filePath, { destination });
     } catch {}
   }
-  await bucket.upload(`${id}.xml`, {
-    destination: `${prefix}content/${id}.xml`,
+  await bucket.upload(jatsFile, {
+    destination: `${prefix}content/${jatsFile}`,
   });
   await logStatus(bucket, prefix, 'processing', {
     message: `${target}: Finalizing processing`,
@@ -103,7 +103,7 @@ export async function processTarget(
     target,
   });
   const uploadDone = Date.now() / 1000;
-  const logFile = `${id}.log.yml`;
+  const logFile = `${id.replace('/', '.')}.log.yml`;
   const logData = yaml.load(fs.readFileSync(logFile).toString()) as Record<
     string,
     any

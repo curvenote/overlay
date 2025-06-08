@@ -127,5 +127,5 @@ export const triggerPubSub = async (target: string, id?: string) => {
 };
 
 export function prefixSuffixToId(prefix: string, suffix: string) {
-  return `${prefix}/${suffix}`;
+  return `${prefix}/${suffix}`.replace(/[^a-zA-Z0-9]/g, '_');
 }

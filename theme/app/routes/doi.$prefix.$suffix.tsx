@@ -58,8 +58,8 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     return { config, article, id };
   } catch (error) {
     const { status } = await getProcessingStatus(id);
-    if (status === 'none') await triggerPubSub(id);
-    throw redirect(`/status/doi/${id}`);
+    if (status === 'none') await triggerPubSub(`${prefix}/${suffix}`, id);
+    throw redirect(`/status/doi/${prefix}/${suffix}`);
   }
 };
 
