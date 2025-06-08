@@ -8,7 +8,7 @@ import type { GoogleAuthOptions } from '@google-cloud/storage/build/cjs/src/node
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
-const FOLDER = 'convert-service-test-1';
+const FOLDER = 'convert-service-test-2';
 const TOPIC = 'pmcJatsConvertTopic';
 
 const CDN = `https://storage.googleapis.com/${BUCKET}/${FOLDER}/`;
@@ -77,6 +77,7 @@ export const getProcessingStatus = async (
   doi?: string;
   citation?: string;
   license?: string;
+  target?: string;
 }> => {
   try {
     const storage = new Storage();
@@ -93,6 +94,7 @@ export const getProcessingStatus = async (
         doi?: string;
         citation?: string;
         license?: string;
+        target?: string;
       };
       return result;
     }
@@ -107,7 +109,7 @@ export const getProcessingStatus = async (
   };
 };
 
-export const triggerPubSub = async (id: string) => {
+export const triggerPubSub = async (target: string, id?: string) => {
   let credentials: GoogleAuthOptions['credentials'] | undefined;
   if (process.env.KEYFILE) {
     credentials = JSON.parse(process.env.KEYFILE);
@@ -117,7 +119,13 @@ export const triggerPubSub = async (id: string) => {
     credentials,
   });
   const topic = pubsub.topic(TOPIC);
-  console.log(`triggering pubsub: ${id}`);
-  await topic.publishMessage({ attributes: { id } });
-  console.log(`done triggering pubsub: ${id}`);
+  console.log(`triggering pubsub: ${target}${id ? ` (ID ${id})` : ''}`);
+  const attributes: { target: string; id?: string } = { target };
+  if (id) attributes.id = id;
+  await topic.publishMessage({ attributes });
+  console.log(`done triggering pubsub: ${target}${id ? ` (ID ${id})` : ''}`);
 };
+
+export function prefixSuffixToId(prefix: string, suffix: string) {
+  return `${prefix}/${suffix}`;
+}

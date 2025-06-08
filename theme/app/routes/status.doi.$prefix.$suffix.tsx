@@ -4,16 +4,17 @@ import { useLoaderData, useNavigate, useParams, useRevalidator } from '@remix-ru
 import { useEffect, useState } from 'react';
 import ProgressScreen from '~/components/ProgressScreen';
 import { NotFoundError } from '~/utils/errors';
-import { getProcessingStatus } from '~/utils/loaders.server';
+import { getProcessingStatus, prefixSuffixToId } from '~/utils/loaders.server';
 import useInterval from '~/utils/useInterval';
 
 export const loader: LoaderFunction = async ({ params }) => {
-  const { id } = params;
-  if (!id) throw NotFoundError();
+  const { prefix, suffix } = params;
+  if (!prefix || !suffix) throw NotFoundError();
+  const id = prefixSuffixToId(prefix, suffix);
   const status = await getProcessingStatus(id);
   // If processing was successful and the result is old, redirect immediately
   if (status.status === 'success' && Date.now() - (status.timestamp ?? 0) > 2000) {
-    throw redirect(`/${id}`);
+    throw redirect(`/doi/${id}`);
   }
   return json(status);
 };
@@ -34,16 +35,18 @@ function useLivePageData(activate: boolean, delay: number) {
 
 export default function Page() {
   const data = useLoaderData() as Awaited<ReturnType<typeof getProcessingStatus>>;
-  const { status, timestamp, target } = data;
+  const { status, timestamp } = data;
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { prefix, suffix } = useParams();
+  if (!prefix || !suffix) throw NotFoundError();
+  const id = prefixSuffixToId(prefix, suffix);
   const [count, setCount] = useState(0);
   const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (status === 'success') {
       setTimeout(() => {
-        navigate({ pathname: `/${id}` }, { replace: true });
+        navigate({ pathname: `/doi/${id}` }, { replace: true });
       }, 300);
     }
     if (status === 'none') {
@@ -59,7 +62,7 @@ export default function Page() {
   let message = data.message ?? '';
   const progress = data.progress ?? 0;
   if (status === 'success') {
-    message = `Processing ${target ?? id} complete! Redirecting to article...`;
+    message = `Processing ${id} complete! Redirecting to article...`;
   }
   return (
     <ProgressScreen

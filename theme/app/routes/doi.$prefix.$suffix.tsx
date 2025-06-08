@@ -9,26 +9,24 @@ import {
   getMetaTagsForArticle,
   KatexCSS,
   useOutlineHeight,
-  useSidebarHeight,
   DocumentOutline,
   ErrorDocumentNotFound,
   ErrorUnhandled,
 } from '@myst-theme/site';
-import { getConfig, getPage, getProcessingStatus, triggerPubSub } from '~/utils/loaders.server';
+import {
+  getConfig,
+  getPage,
+  getProcessingStatus,
+  prefixSuffixToId,
+  triggerPubSub,
+} from '~/utils/loaders.server';
 import { isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react';
 import type { SiteManifest } from 'myst-config';
-import {
-  TabStateProvider,
-  UiStateProvider,
-  useSiteManifest,
-  useThemeTop,
-  ProjectProvider,
-  GridSystemProvider,
-  SiteProvider,
-} from '@myst-theme/providers';
+import { useSiteManifest, ProjectProvider, SiteProvider } from '@myst-theme/providers';
 import { ArticlePage } from '~/components/ArticlePage';
 import { NotFoundError } from '~/utils/errors';
 import GitHubIssueButton from '~/components/GitHubIssueButton';
+import { ArticlePageAndNavigation } from './($id)';
 
 type LoaderData = { config: SiteManifest; article: PageLoader; id: string };
 
@@ -47,47 +45,23 @@ export const meta: V2_MetaFunction = (args) => {
 export const links: LinksFunction = () => [KatexCSS];
 
 export const loader: LoaderFunction = async ({ params, request }) => {
-  const { id } = params;
-  if (!id || !id.match(/^PMC[0-9]+$/)) throw NotFoundError();
+  const { prefix, suffix } = params;
+  if (!prefix || !suffix) throw NotFoundError();
+  const id = prefixSuffixToId(prefix, suffix);
   try {
     const config = await getConfig(id);
     const article = await getPage(request, id, {});
     if (article) {
       article.frontmatter.identifiers ??= {};
-      article.frontmatter.identifiers.pmcid = id;
+      article.frontmatter.identifiers.doi = id;
     }
     return { config, article, id };
   } catch (error) {
     const { status } = await getProcessingStatus(id);
     if (status === 'none') await triggerPubSub(id);
-    throw redirect(`/status/${id}`);
+    throw redirect(`/status/doi/${id}`);
   }
 };
-
-export function ArticlePageAndNavigation({
-  children,
-  inset = 20, // begin text 20px from the top (aligned with menu)
-}: {
-  hide_toc?: boolean;
-  hideSearch?: boolean;
-  projectSlug?: string;
-  children: React.ReactNode;
-  inset?: number;
-}) {
-  const top = useThemeTop();
-  const { container } = useSidebarHeight(top, inset);
-  return (
-    <UiStateProvider>
-      <TabStateProvider>
-        <GridSystemProvider gridSystem="article-left-grid">
-          <article ref={container} className="article content article-left-grid grid-gap">
-            {children}
-          </article>
-        </GridSystemProvider>
-      </TabStateProvider>
-    </UiStateProvider>
-  );
-}
 
 interface ThemeTemplateOptions {
   hide_toc?: boolean;
