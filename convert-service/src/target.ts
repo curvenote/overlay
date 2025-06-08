@@ -43,7 +43,7 @@ export async function processTarget(
     progress: TS0 / TS5,
     target,
   });
-  const jatsFile = `${id}.xml`;
+  const jatsFile = `${id.replace('/', '.')}.xml`;
   await jatsFetch(session, target, {
     output: jatsFile,
   });
