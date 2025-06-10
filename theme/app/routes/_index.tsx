@@ -65,7 +65,7 @@ function Index() {
     <ArticlePageAndNavigation>
       <main>
         <Admonition
-          title={<>Beta Overlay for Open Access JATS Articles</>}
+          title={<>Beta Overlay for Open Access Articles</>}
           kind={AdmonitionKind.warning}
           color="yellow"
           simple

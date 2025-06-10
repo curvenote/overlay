@@ -62,7 +62,7 @@ export function ArticlePage({
         />
       )}
       <Admonition
-        title={<>Beta Rendering of PMC Open Access Article</>}
+        title={<>Beta Overlay for Open Access Articles</>}
         kind={AdmonitionKind.warning}
         color="yellow"
         simple
@@ -70,7 +70,8 @@ export function ArticlePage({
       >
         <p>
           This is an experiment to create an overlay rendering of an open-access article. There may
-          be errors in the content. We recommend looking at the original article at:
+          be errors in the content. We recommend looking at the original article via DOI or PMC
+          directly. We recommend looking at the original article at:
           <br />
           <ul>
             {article.frontmatter.identifiers?.pmcid && (
