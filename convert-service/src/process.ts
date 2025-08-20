@@ -18,13 +18,14 @@ import {
 import { Bucket } from '@google-cloud/storage';
 import { build, init, Session } from 'myst-cli';
 import { basicLogger, LogLevel } from 'myst-cli-utils';
-import { jatsFetch } from 'jats-fetch';
+import { convertPMCID2DOI, getDownloadMetadata, jatsFetch } from 'jats-fetch';
 import { jatsConvert } from 'jats-convert';
 import { ProjectConfig, SiteConfig } from 'myst-config';
+import { Download } from 'myst-frontmatter';
 import fastFolderSize from 'fast-folder-size';
 
 /**
- * Generic target processing
+ * PMC-specific processing
  */
 export async function processTarget(
   target: string,
@@ -37,15 +38,56 @@ export async function processTarget(
   const session = new Session({
     logger: basicLogger(LogLevel.debug),
   });
-  // License check would need to come from JATS body after fetching
+  let citation: string | undefined;
+  let license: string | undefined;
+  if (target.match(/^PMC[0-9]+$/)) {
+    await logStatus(bucket, prefix, 'processing', {
+      message: `${target}: Validating PMC ID`,
+      progress: 0 / TS5,
+    });
+    try {
+      const metadata = await getDownloadMetadata(id);
+      citation = metadata.citation;
+      license = metadata.license;
+    } catch {
+      const doi = await convertPMCID2DOI(session, id);
+      if (doi) {
+        await logStatus(bucket, prefix, 'failure', {
+          message: `${target}: PMC ID is not open access`,
+          error: 'non-oa',
+          doi,
+        });
+      } else {
+        await logStatus(bucket, prefix, 'failure', {
+          message: `${target}: PMC ID cannot be found`,
+          error: 'non-pmc',
+        });
+      }
+      return respondUnableToProcess(res, id);
+    }
+    if (!license || !['CC BY', 'CC0'].includes(license)) {
+      const doi = await convertPMCID2DOI(session, id);
+      await logStatus(bucket, prefix, 'failure', {
+        message: `${id}: PMC article must be CC-BY or CC0 (License: ${license ?? 'None'})`,
+        error: 'non-cc',
+        doi,
+        citation,
+        license,
+      });
+      return respondUnableToProcess(res, id);
+    }
+  }
   await logStatus(bucket, prefix, 'processing', {
-    message: `${target}: Attempting to download JATS data`,
+    message: `${target}: Downloading data`,
     progress: TS0 / TS5,
     target,
+    citation,
+    license,
   });
   const jatsFile = `${id.replace('/', '.')}.xml`;
   await jatsFetch(session, target, {
     output: jatsFile,
+    data: true,
   });
   if (!fs.existsSync(jatsFile)) {
     await logStatus(bucket, prefix, 'failure', {
@@ -59,6 +101,8 @@ export async function processTarget(
     message: `${target}: Converting data for Curvenote`,
     progress: TS1 / TS5,
     target,
+    citation,
+    license,
   });
   const downloadDone = Date.now() / 1000;
   await jatsConvert(session, jatsFile, {
@@ -69,7 +113,8 @@ export async function processTarget(
   await logStatus(bucket, prefix, 'processing', {
     message: `${target}: Building Curvenote site`,
     progress: TS2 / TS5,
-    target,
+    citation,
+    license,
   });
   await init(session, { project: true, site: true });
   const mystFile = 'myst.yml';
@@ -77,7 +122,16 @@ export async function processTarget(
     project: ProjectConfig;
     site: SiteConfig;
   };
-  // Downloads would need to come from JATS body directly
+  const pdfs = fs
+    .readdirSync('.')
+    .filter((file) => path.extname(file).toLowerCase() === '.pdf');
+  const filename = pdfs.length === 1 ? `${id}.pdf` : undefined;
+  mystYml.project.downloads = [
+    ...(mystYml.project.downloads ?? []),
+    ...pdfs.map((file): Download => {
+      return { url: file, filename };
+    }),
+  ];
   mystYml.site.template = TEMPLATE;
   fs.writeFileSync(mystFile, yaml.dump(mystYml));
   await session.reload();
@@ -87,6 +141,8 @@ export async function processTarget(
     message: `${target}: Saving data`,
     progress: TS3 / TS5,
     target,
+    citation,
+    license,
   });
   for await (const filePath of getFiles('_build/site')) {
     try {
@@ -94,13 +150,15 @@ export async function processTarget(
       await bucket.upload(filePath, { destination });
     } catch {}
   }
-  await bucket.upload(jatsFile, {
-    destination: `${prefix}content/${jatsFile}`,
+  await bucket.upload(`${id}.xml`, {
+    destination: `${prefix}content/${id}.xml`,
   });
   await logStatus(bucket, prefix, 'processing', {
     message: `${target}: Finalizing processing`,
     progress: TS4 / TS5,
     target,
+    citation,
+    license,
   });
   const uploadDone = Date.now() / 1000;
   const logFile = `${id.replace('/', '.')}.log.yml`;
@@ -115,7 +173,16 @@ export async function processTarget(
     upload: uploadDone - processDone,
   };
   const buildSize = await util.promisify(fastFolderSize)(`_build/`);
+  const archiveFile = fs
+    .readdirSync('.')
+    .find(
+      (file) =>
+        file.toLowerCase().endsWith('.tar.gz') ||
+        file.toLowerCase().endsWith('.meca')
+    );
+  const archive = archiveFile ? fs.lstatSync(archiveFile).size : undefined;
   logData.sizes = {
+    archive,
     build: buildSize,
   };
   fs.writeFileSync(logFile, yaml.dump(logData));
@@ -124,6 +191,8 @@ export async function processTarget(
     message: `${target}: Processing Complete`,
     progress: 1,
     target,
+    citation,
+    license,
   });
   return res.sendStatus(204);
 }

@@ -9,12 +9,11 @@ import {
   respondBadRequest,
   respondUnableToProcess,
 } from './utils.js';
-import { processPMC } from './pmc.js';
-import { processTarget } from './target.js';
+import { processTarget } from './process.js';
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
-const FOLDER = 'convert-service-test-2';
+const FOLDER = 'convert-service-test-3';
 
 export function createService() {
   const app = express();
@@ -57,11 +56,7 @@ export function createService() {
       fs.mkdirSync(tmpFolder, { recursive: true });
       process.chdir(tmpFolder);
       console.info(`Working in temp folder: ${tmpFolder}`);
-      if (target.match(/^PMC[0-9]+$/)) {
-        await processPMC(target, bucket, prefix, res);
-      } else {
-        await processTarget(target, id, bucket, prefix, res);
-      }
+      await processTarget(target, id, bucket, prefix, res);
       process.chdir(cwd);
       removeFolder(tmpFolder);
       return res;
