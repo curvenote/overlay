@@ -1,6 +1,6 @@
 {
   "name": "@curvenote/pmc-jats-convert-service",
-  "description": "Bundled PMC JATS convert service",
+  "description": "Bundled JATS convert service",
   "version": "0.0.1",
   "private": true,
   "license": "",
