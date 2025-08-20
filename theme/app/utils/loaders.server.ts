@@ -8,7 +8,7 @@ import type { GoogleAuthOptions } from '@google-cloud/storage/build/cjs/src/node
 
 const PROJECT = 'curvenote-dev-1';
 const BUCKET = 'pmc-jats-curvenote-dev-1';
-const FOLDER = 'convert-service-test-2';
+const FOLDER = 'convert-service-test-3';
 const TOPIC = 'pmcJatsConvertTopic';
 
 const CDN = `https://storage.googleapis.com/${BUCKET}/${FOLDER}/`;
@@ -127,5 +127,5 @@ export const triggerPubSub = async (target: string, id?: string) => {
 };
 
 export function prefixSuffixToId(prefix: string, suffix: string) {
-  return `${prefix}/${suffix}`.replace(/[^a-zA-Z0-9]/g, '_');
+  return `${prefix}/${suffix}`.replace(/[^a-zA-Z0-9]/g, '-');
 }
