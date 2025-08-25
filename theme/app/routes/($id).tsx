@@ -118,6 +118,7 @@ export default function Page() {
     ...siteDesign,
     ...pageDesign,
   };
+
   return (
     <ArticlePageAndNavigation hide_toc={hide_toc} hideSearch>
       <SiteProvider config={config}>
@@ -126,13 +127,14 @@ export default function Page() {
             <GitHubIssueButton id={id} />
             {!hide_outline && (
               <div
-                className="sticky z-10 hidden h-0 col-margin-right-inset lg:block"
+                className="hidden sticky z-10 h-0 col-margin-right-inset lg:block"
                 style={{ top: 0 }}
               >
                 <DocumentOutline
                   className="relative pt-5 ml-6 max-w-[350px]"
                   outlineRef={outline}
                   isMargin={false}
+                  maxdepth={1}
                 />
               </div>
             )}
