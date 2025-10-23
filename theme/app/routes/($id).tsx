@@ -50,12 +50,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const { id } = params;
   if (!id) throw NotFoundError();
   try {
-    const config = await getConfig(id);
-    const article = await getPage(request, id, {});
-    if (article && id.match(/^PMC[0-9]+$/)) {
-      article.frontmatter.identifiers ??= {};
-      article.frontmatter.identifiers.pmcid = id;
-    }
+    const [config, article] = await Promise.all([getConfig(id), getPage(request, id, {})]);
     return { config, article, id };
   } catch (error) {
     const { status } = await getProcessingStatus(id);
@@ -118,6 +113,7 @@ export default function Page() {
     ...siteDesign,
     ...pageDesign,
   };
+
   return (
     <ArticlePageAndNavigation hide_toc={hide_toc} hideSearch>
       <SiteProvider config={config}>
@@ -126,13 +122,14 @@ export default function Page() {
             <GitHubIssueButton id={id} />
             {!hide_outline && (
               <div
-                className="sticky z-10 hidden h-0 col-margin-right-inset lg:block"
+                className="hidden sticky z-10 h-0 col-margin-right-inset lg:block"
                 style={{ top: 0 }}
               >
                 <DocumentOutline
                   className="relative pt-5 ml-6 max-w-[350px]"
                   outlineRef={outline}
                   isMargin={false}
+                  maxdepth={1}
                 />
               </div>
             )}

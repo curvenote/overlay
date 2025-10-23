@@ -11,7 +11,7 @@ import {
 import type { PageLoader } from '@myst-theme/common';
 import { Admonition, AdmonitionKind } from 'myst-to-react';
 import { copyNode, type GenericParent } from 'myst-common';
-import { FrontmatterBlock } from '@myst-theme/frontmatter';
+import { FrontmatterBlock } from './ForntmatterBlock';
 import type { SiteAction } from 'myst-config';
 
 /**
@@ -57,7 +57,7 @@ export function ArticlePage({
         <FrontmatterBlock
           kind={article.kind}
           frontmatter={{ ...article.frontmatter, ...manifest, downloads }}
-          className="mb-8 pt-9"
+          className="pt-9 mb-8"
           authorStyle="list"
         />
       )}
