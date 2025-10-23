@@ -50,12 +50,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const { id } = params;
   if (!id) throw NotFoundError();
   try {
-    const config = await getConfig(id);
-    const article = await getPage(request, id, {});
-    if (article && id.match(/^PMC[0-9]+$/)) {
-      article.frontmatter.identifiers ??= {};
-      article.frontmatter.identifiers.pmcid = id;
-    }
+    const [config, article] = await Promise.all([getConfig(id), getPage(request, id, {})]);
     return { config, article, id };
   } catch (error) {
     const { status } = await getProcessingStatus(id);

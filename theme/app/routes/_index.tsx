@@ -14,12 +14,12 @@ export const action: ActionFunction = async ({ request }) => {
   return { folders: await getFolders() };
 };
 
-const buttonClasses = `px-6 py-2 font-medium rounded-md shadow transition 
+const buttonClasses = `px-6 py-2 font-medium rounded-md shadow transition
   bg-blue-800 text-white hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
   disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50`;
 
 function isValidTarget(target: string) {
-  return target.match(/^PMC[0-9]+$/) || doi.validate(target) || isUrl(target);
+  return target.toUpperCase().match(/^PMC[0-9]+$/) || doi.validate(target) || isUrl(target);
 }
 
 function Index() {
@@ -39,8 +39,8 @@ function Index() {
     if (target) {
       setButtonDisabled(true);
       setInputDisabled(true);
-      if (target.match(/^PMC[0-9]+$/)) {
-        navigate(`/${target}`);
+      if (target.toUpperCase().match(/^PMC[0-9]+$/)) {
+        navigate(`/${target.toUpperCase()}`);
       } else if (doi.validate(target)) {
         navigate(`/doi/${doi.normalize(target)}`);
       } else if (isUrl(target)) {
@@ -80,7 +80,7 @@ function Index() {
         <text>Enter PMC ID, DOI, or article URL: </text>
         <div className="flex items-center space-x-2">
           <input
-            className="flex-grow px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-grow px-4 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             type="text"
             placeholder="PMC###"
             onChange={handleChange}

@@ -47,11 +47,17 @@ export const getPage = async (
   request: Request,
   id: string,
   opts: Parameters<typeof cdn.getPage>[1],
-) =>
-  cdn.getPage(getHostname(id), {
+) => {
+  const article = await cdn.getPage(getHostname(id), {
     ...opts,
     domain: getDomainFromRequest(request),
   });
+  if (article && id.toUpperCase().match(/^PMC[0-9]+$/)) {
+    article.frontmatter.identifiers ??= {};
+    article.frontmatter.identifiers.pmcid = id.toUpperCase();
+  }
+  return article;
+};
 
 export const getObjectsInv = async (id: string) => cdn.getObjectsInv(getHostname(id));
 
