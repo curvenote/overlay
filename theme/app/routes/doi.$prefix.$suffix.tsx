@@ -88,7 +88,7 @@ export default function Page() {
             <GitHubIssueButton id={id} />
             {!hide_outline && (
               <div
-                className="sticky z-10 hidden h-0 col-margin-right-inset lg:block"
+                className="hidden sticky z-10 h-0 col-margin-right-inset lg:block"
                 style={{ top: 0 }}
               >
                 <DocumentOutline
